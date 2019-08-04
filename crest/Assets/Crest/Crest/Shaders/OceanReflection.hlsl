@@ -25,10 +25,10 @@ half3 SkyProceduralDP(in const half3 i_refl, in const half3 i_lightDir)
 uniform sampler2D _ReflectionTex;
 half _PlanarReflectionNormalsStrength;
 
-void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, inout half3 io_colour)
+void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, in const float i_pixelZ, inout half3 io_colour)
 {
 	half4 screenPos = i_screenPos;
-	screenPos.xy += _PlanarReflectionNormalsStrength * i_n_pixel.xz;
+	screenPos.xy += i_pixelZ * _PlanarReflectionNormalsStrength * i_n_pixel.xz;
 	half4 refl = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos));
 	io_colour = lerp(io_colour, refl.rgb, refl.a);
 }
@@ -59,7 +59,7 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	return R_theta;
 }
 
-void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, inout half3 io_col)
+void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const float i_pixelZ, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, inout half3 io_col)
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
@@ -89,7 +89,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Override with anything in the planar reflections
 #if _PLANARREFLECTIONS_ON
-	PlanarReflection(i_screenPos, i_n_pixel, skyColour);
+	PlanarReflection(i_screenPos, i_n_pixel, i_pixelZ, skyColour);
 #endif
 
 	// Add primary light
